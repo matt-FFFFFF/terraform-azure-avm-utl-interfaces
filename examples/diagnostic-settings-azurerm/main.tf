@@ -67,9 +67,11 @@ resource "azapi_resource" "stg" {
   }
 }
 
+# In ordinary usage, the diagnostic_settings attribute value would be set to var.diagnostic_settings.
+# However, because we are creating the log analytics workspace in this example, we need to set the workspace_resource_id attribute value to the ID of the log analytics workspace.
 module "avm_interfaces" {
   source = "../../"
-  diagnostic_settings = { # This would normally be an input variable, e.g. var.diagnostic_settings
+  diagnostic_settings = {
     example = {
       name                           = "tolaw"
       log_groups                     = ["allLogs"]
@@ -80,10 +82,28 @@ module "avm_interfaces" {
   }
 }
 
-resource "azapi_resource" "diag_settings" {
-  for_each  = module.avm_interfaces.diagnostic_settings_azapi
-  name      = each.value.name
-  type      = each.value.type
-  body      = each.value.body
-  parent_id = "${azapi_resource.stg.id}/blobServices/default"
+resource "azurerm_monitor_diagnostic_setting" "example" {
+  for_each                       = module.avm_interfaces.diagnostic_settings_azurerm
+  name                           = each.value.name
+  target_resource_id             = "${azapi_resource.stg.id}/blobServices/default"
+  log_analytics_workspace_id     = each.value.log_analytics_workspace_id
+  eventhub_authorization_rule_id = each.value.eventhub_authorization_rule_id
+  eventhub_name                  = each.value.eventhub_name
+  partner_solution_id            = each.value.partner_solution_id
+  storage_account_id             = each.value.storage_account_id
+
+  dynamic "enabled_log" {
+    for_each = each.value.enabled_log
+    content {
+      category       = enabled_log.value.category
+      category_group = enabled_log.value.category_group
+    }
+  }
+
+  dynamic "metric" {
+    for_each = each.value.enabled_metric
+    content {
+      category = metric.value.category
+    }
+  }
 }
