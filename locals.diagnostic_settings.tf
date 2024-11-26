@@ -12,17 +12,27 @@ locals {
           eventHubAuthorizationRuleId = lookup(v, "event_hub_authorization_rule_resource_id", null)
           eventHubName                = lookup(v, "event_hub_name", null)
           logAnalyticsDestinationType = lookup(v, "log_analytics_destination_type", null)
-          logs = length(v.log_categories) > 0 || length(v.log_groups) > 0 ? [
-            {
-              category      = length(v.log_categories) > 0 ? v.log_categories : null
-              categoryGroup = length(v.log_groups) > 0 ? v.log_groups : null
-              enabled       = true
-            }
-          ] : null
+          logs = setunion(
+            [
+              for log_group in v.log_groups : {
+                category      = null
+                categoryGroup = log_group
+                enabled       = true
+              }
+            ],
+            [
+              for log_category in v.log_categories : {
+                category      = log_category
+                categoryGroup = null
+                enabled       = true
+              }
+            ]
+          )
           marketplacePartnerId = lookup(v, "marketplace_partner_resource_id", null)
           metrics = length(v.metric_categories) > 0 ? [
+            for category in v.metric_categories :
             {
-              category = v.metric_categories
+              category = category
               enabled  = true
             }
           ] : null

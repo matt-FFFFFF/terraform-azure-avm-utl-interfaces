@@ -69,7 +69,7 @@ resource "azapi_resource" "stg" {
 
 module "avm_interfaces" {
   source = "../../"
-  diagnostic_settings = {
+  diagnostic_settings = { # This would normally be an input variable, e.g. var.diagnostic_settings
     example = {
       name                           = "tolaw"
       log_groups                     = ["allLogs"]
@@ -84,7 +84,6 @@ resource "azapi_resource" "diag_settings" {
   for_each  = module.avm_interfaces.diagnostic_settings_azapi
   name      = each.value.name
   type      = each.value.type
-  location  = azapi_resource.rg.location
   body      = each.value.body
   parent_id = "${azapi_resource.stg.id}/blobServices/default"
 }
