@@ -1,15 +1,25 @@
 locals {
-  # role_assignments_definitions_substring = lower("providers/Microsoft.Authorization/roleDefinitions")
-  # role_assignments_role_names_to_lookup = toset([
-  #   for _, v in var.role_assignments : v.role_definition_id_or_name if !strcontains(lower(v.role_definition_id_or_name), local.role_assignments_definitions_substring)
-  # ])
-  role_assignments_role_name_to_resource_id = {
-    for res in data.azapi_resource_list.role_definitions.output.results : res.role_name => res.id
-  }
-  role_assignments_role_definition_resource_ids = {
-    for k, v in var.role_assignments : k => lookup(local.role_assignments_role_name_to_resource_id, v.role_definition_id_or_name, v.role_definition_id_or_name)
-  }
+  # The type and api version of the role assignments resource.
   role_assignments_type = "Microsoft.Authorization/roleAssignments@2022-04-01"
+
+  # Take the output from the data source and create a map of role_name to resource id.
+  role_assignments_role_name_to_resource_id = var.role_assignment_definition_lookup_enabled ? {
+    for res in data.azapi_resource_list.role_definitions[0].output.results : res.role_name => res.id
+  } : {}
+
+  # Create a map of role definition resource ids for each role assignment.
+  # We do this because we use this information more than once.
+  # Firstly in the roleDefinitionId property of the role assignment,
+  # and secondly as part of the deterministic UUID name property of the role assignment.
+  role_assignments_role_definition_resource_ids = {
+    for k, v in var.role_assignments : k => lookup(
+      local.role_assignments_role_name_to_resource_id,
+      v.role_definition_id_or_name,
+      v.role_definition_id_or_name
+    )
+  }
+
+  # Here is the role assignment data for the azapi_resource.
   role_assignments_azapi = {
     for k, v in var.role_assignments : k => {
       type = local.role_assignments_type

@@ -1,0 +1,1 @@
+# diagnostic settings interface example

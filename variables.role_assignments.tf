@@ -27,11 +27,25 @@ DESCRIPTION
 
 variable "role_assignment_definition_scope" {
   type        = string
-  description = "The scope at which the role assignments will be created."
+  description = <<DESCRIPTION
+The scope at which the role assignments should be created.
+This is typically the resource ID of the subscription of the reosurce, but could also be the management group for resources deployed there.
+
+Must be specified when `role_assignments` are defined.
+DESCRIPTION
   default     = null
 
   validation {
     condition     = length(var.role_assignments) > 0 ? var.role_assignment_definition_scope != null : true
     error_message = "The role_assignment_definition_scope variable must be set when role_assignments are defined."
   }
+}
+
+variable "role_assignment_definition_lookup_enabled" {
+  type        = bool
+  description = <<DESCRIPTION
+A control to disable the lookup of role definitions when creating role assignments.
+If you disable this then all role assignments must be supplied with a `role_definition_id_or_name` that is a valid role definition ID.
+DESCRIPTION
+  default     = true
 }
