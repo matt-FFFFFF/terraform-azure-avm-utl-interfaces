@@ -17,17 +17,21 @@ variable "role_assignments" {
   - `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
   - `principal_id` - The ID of the principal to assign the role to.
   - `description` - (Optional) The description of the role assignment.
-  - `skip_service_principal_aad_check` - (Optional) If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
+  - `skip_service_principal_aad_check` - (Optional) No effect when using AzAPI.
   - `condition` - (Optional) The condition which will be used to scope the role assignment.
   - `condition_version` - (Optional) The version of the condition syntax. Leave as `null` if you are not using a condition, if you are then valid values are '2.0'.
   - `delegated_managed_identity_resource_id` - (Optional) The delegated Azure Resource Id which contains a Managed Identity. Changing this forces a new resource to be created. This field is only used in cross-tenant scenario.
   - `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
-
-  > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
-  DESCRIPTION
+DESCRIPTION
 }
 
-variable "role_assignments_scope" {
+variable "role_assignment_definition_scope" {
   type        = string
-  description = "The scope at which the role assignments should be created."
+  description = "The scope at which the role assignments will be created."
+  default     = null
+
+  validation {
+    condition     = length(var.role_assignments) > 0 ? var.role_assignment_definition_scope != null : true
+    error_message = "The role_assignment_definition_scope variable must be set when role_assignments are defined."
+  }
 }
