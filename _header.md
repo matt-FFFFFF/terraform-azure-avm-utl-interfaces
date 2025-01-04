@@ -9,7 +9,7 @@ Pass in the values form your interface variables into this module, then use the 
 
 ```hcl
 # Pass your AVM interface values into this module
-module "avm_interfaecs" {
+module "avm_interfaces" {
   source  = "azure/avm-utl-interfaces/azure"
   version = # your version here
 

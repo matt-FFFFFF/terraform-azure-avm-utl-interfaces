@@ -1,3 +1,5 @@
+# This resource allows us to look up role definitions by role name.
+# The AzureRM provider does this already so we are replicating this functionality here to benefit AzAPI users.
 data "azapi_resource_list" "role_definitions" {
   count     = var.role_assignment_definition_lookup_enabled ? 1 : 0
   type      = "Microsoft.Authorization/roleDefinitions@2022-04-01"

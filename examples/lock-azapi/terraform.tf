@@ -5,17 +5,9 @@ terraform {
       source  = "azure/azapi"
       version = "~> 2.0"
     }
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 4.0"
-    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.6"
     }
   }
-}
-
-provider "azurerm" {
-  features {}
 }
