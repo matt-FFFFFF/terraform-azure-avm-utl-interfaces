@@ -1,8 +1,6 @@
 
 # These locals create the data for the azapi_resources from the var.diagnostic_settings variable
 locals {
-  diagnostic_settings_type = "Microsoft.Insights/diagnosticSettings@2021-05-01-preview"
-
   diagnostic_settings_azapi = {
     for k, v in var.diagnostic_settings : k => {
       type = local.diagnostic_settings_type
@@ -42,4 +40,5 @@ locals {
       }
     }
   }
+  diagnostic_settings_type = "Microsoft.Insights/diagnosticSettings@2021-05-01-preview"
 }

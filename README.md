@@ -12,7 +12,7 @@ Pass in the values form your interface variables into this module, then use the 
 # Pass your AVM interface values into this module
 module "avm_interfaces" {
   source  = "azure/avm-utl-interfaces/azure"
-  version = # your version here
+  version = "" # your version here
 
   diagnostic_settings = var.diagnostic_settings
   # ... add more interface values here
@@ -22,9 +22,9 @@ module "avm_interfaces" {
 resource "azapi_resource" "diagnostic_settings" {
   for_each = module.avm_interfaces.diagnostic_settings_azapi
 
-  name    = each.value.name
-  type    = each.value.type
-  body    = each.value.body
+  name      = each.value.name
+  type      = each.value.type
+  body      = each.value.body
   parent_id = azapi_resource.my_module_resource.id
 }
 ```
@@ -93,6 +93,42 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_lock"></a> [lock](#input\_lock)
+
+Description:   Controls the Resource Lock configuration for this resource. The following properties can be specified:
+
+  - `kind` - (Required) The type of lock. Possible values are `\"CanNotDelete\"` and `\"ReadOnly\"`.
+  - `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value. Changing this forces the creation of a new resource.
+
+Type:
+
+```hcl
+object({
+    kind = string
+    name = optional(string, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
+
+Description:   Controls the Managed Identity configuration on this resource. The following properties can be specified:
+
+  - `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
+  - `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
+
+Type:
+
+```hcl
+object({
+    system_assigned            = optional(bool, false)
+    user_assigned_resource_ids = optional(set(string), [])
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_role_assignment_definition_lookup_enabled"></a> [role\_assignment\_definition\_lookup\_enabled](#input\_role\_assignment\_definition\_lookup\_enabled)
 
 Description: A control to disable the lookup of role definitions when creating role assignments.  
@@ -150,6 +186,18 @@ The following outputs are exported:
 ### <a name="output_diagnostic_settings_azapi"></a> [diagnostic\_settings\_azapi](#output\_diagnostic\_settings\_azapi)
 
 Description: A map of the diagnostic settings resource data for use with azapi.
+
+### <a name="output_lock_azapi"></a> [lock\_azapi](#output\_lock\_azapi)
+
+Description: The lock data for the azapi\_resource.
+
+### <a name="output_managed_identities_azapi"></a> [managed\_identities\_azapi](#output\_managed\_identities\_azapi)
+
+Description: The Managed Identity configuration for the azapi\_resource.  
+Value is an object with the following attributes:
+
+- `type` - The type of Managed Identity. Possible values are `SystemAssigned`, `UserAssigned`, or `SystemAssigned, UserAssigned`.
+- `identity_ids` - A list of User Assigned Managed Identity resource IDs assigned to this resource.
 
 ### <a name="output_role_assignments_azapi"></a> [role\_assignments\_azapi](#output\_role\_assignments\_azapi)
 

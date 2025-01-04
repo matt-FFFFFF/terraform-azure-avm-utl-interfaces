@@ -9,8 +9,8 @@ resource "random_pet" "name" {
 
 resource "azapi_resource" "rg" {
   type     = "Microsoft.Resources/resourceGroups@2024-03-01"
-  name     = "rg-${random_pet.name.id}"
   location = "swedencentral"
+  name     = "rg-${random_pet.name.id}"
 }
 
 # In ordinary usage, the role_assignments attribute value would be set to var.role_assignments.
@@ -31,10 +31,11 @@ module "avm_interfaces" {
 data "azurerm_client_config" "current" {}
 
 resource "azapi_resource" "role_assignments" {
-  for_each  = module.avm_interfaces.role_assignments_azapi
-  name      = each.value.name
+  for_each = module.avm_interfaces.role_assignments_azapi
+
   type      = each.value.type
   body      = each.value.body
+  name      = each.value.name
   parent_id = azapi_resource.rg.id
 }
 ```
@@ -47,6 +48,8 @@ The following requirements are needed by this module:
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.6)
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.0)
+
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.6)
 

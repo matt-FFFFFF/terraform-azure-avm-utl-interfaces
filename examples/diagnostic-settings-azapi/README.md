@@ -9,15 +9,12 @@ resource "random_pet" "name" {
 
 resource "azapi_resource" "rg" {
   type     = "Microsoft.Resources/resourceGroups@2024-03-01"
-  name     = "rg-${random_pet.name.id}"
   location = "swedencentral"
+  name     = "rg-${random_pet.name.id}"
 }
 
 resource "azapi_resource" "law" {
-  type      = "Microsoft.OperationalInsights/workspaces@2023-09-01"
-  name      = "law-${random_pet.name.id}"
-  location  = azapi_resource.rg.location
-  parent_id = azapi_resource.rg.id
+  type = "Microsoft.OperationalInsights/workspaces@2023-09-01"
   body = {
     properties = {
       sku = {
@@ -29,13 +26,13 @@ resource "azapi_resource" "law" {
       }
     }
   }
+  location  = azapi_resource.rg.location
+  name      = "law-${random_pet.name.id}"
+  parent_id = azapi_resource.rg.id
 }
 
 resource "azapi_resource" "stg" {
-  type      = "Microsoft.Storage/storageAccounts@2023-05-01"
-  name      = "stg${replace(random_pet.name.id, "-", "")}"
-  location  = azapi_resource.rg.location
-  parent_id = azapi_resource.rg.id
+  type = "Microsoft.Storage/storageAccounts@2023-05-01"
   body = {
     kind = "StorageV2"
     properties = {
@@ -69,6 +66,9 @@ resource "azapi_resource" "stg" {
       name = "Standard_LRS"
     }
   }
+  location  = azapi_resource.rg.location
+  name      = "stg${replace(random_pet.name.id, "-", "")}"
+  parent_id = azapi_resource.rg.id
 }
 
 # In ordinary usage, the diagnostic_settings attribute value would be set to var.diagnostic_settings.
@@ -87,10 +87,11 @@ module "avm_interfaces" {
 }
 
 resource "azapi_resource" "diag_settings" {
-  for_each  = module.avm_interfaces.diagnostic_settings_azapi
-  name      = each.value.name
+  for_each = module.avm_interfaces.diagnostic_settings_azapi
+
   type      = each.value.type
   body      = each.value.body
+  name      = each.value.name
   parent_id = "${azapi_resource.stg.id}/blobServices/default"
 }
 ```
