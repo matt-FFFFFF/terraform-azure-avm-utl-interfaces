@@ -80,6 +80,10 @@ output "private_endpoints_azapi" {
   value = module.avm_interfaces.private_endpoints_azapi
 }
 
+output "private_dns_zone_groups_azapi" {
+  value = module.avm_interfaces.private_dns_zone_groups_azapi
+}
+
 resource "azapi_resource" "private_endpoints" {
   for_each  = module.avm_interfaces.private_endpoints_azapi
   name      = each.value.name
@@ -87,4 +91,12 @@ resource "azapi_resource" "private_endpoints" {
   body      = each.value.body
   location  = azapi_resource.keyvault.location
   parent_id = azapi_resource.rg.id
+}
+
+resource "azapi_resource" "private_dns_zone_groups" {
+  for_each  = module.avm_interfaces.private_dns_zone_groups_azapi
+  name      = each.value.name
+  type      = each.value.type
+  body      = each.value.body
+  parent_id = azapi_resource.private_endpoints[each.key].id
 }

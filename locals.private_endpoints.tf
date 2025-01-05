@@ -52,8 +52,10 @@ locals {
         properties = {
           privateDnsZoneConfigs = [
             for private_dns_zone_resource_id in v.private_dns_zone_resource_ids : {
-              name             = try(v.private_dns_zone_group_name, "default")
-              privateDnsZoneId = private_dns_zone_resource_id
+              name = try(v.private_dns_zone_group_name, "default")
+              properties = {
+                privateDnsZoneId = private_dns_zone_resource_id
+              }
             }
           ]
         }
