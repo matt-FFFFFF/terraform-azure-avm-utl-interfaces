@@ -19,16 +19,16 @@ module "avm_interfaces" {
   source = "../../"
   role_assignments = {
     example = {
-      principal_id               = data.azurerm_client_config.current.object_id
+      principal_id               = data.azapi_client_config.current.object_id
       role_definition_id_or_name = "Storage Blob Data Owner"
       scope                      = azapi_resource.rg.id
       principal_type             = "User"
     }
   }
-  role_assignment_definition_scope = "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+  role_assignment_definition_scope = "/subscriptions/${data.azapi_client_config.current.subscription_id}"
 }
 
-data "azurerm_client_config" "current" {}
+data "azapi_client_config" "current" {}
 
 resource "azapi_resource" "role_assignments" {
   for_each = module.avm_interfaces.role_assignments_azapi
@@ -49,8 +49,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
-
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.6)
 
 ## Resources
@@ -60,7 +58,7 @@ The following resources are used by this module:
 - [azapi_resource.rg](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.role_assignments](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
 - [random_pet.name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) (resource)
-- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [azapi_client_config.current](https://registry.terraform.io/providers/azure/azapi/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
