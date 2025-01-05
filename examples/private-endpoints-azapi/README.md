@@ -1,7 +1,9 @@
 <!-- BEGIN_TF_DOCS -->
-# role assignments interface example
+# private endpoints interface example
 
 ```hcl
+data "azapi_client_config" "current" {}
+
 resource "random_pet" "name" {
   length    = 2
   separator = "-"
@@ -10,31 +12,84 @@ resource "random_pet" "name" {
 resource "azapi_resource" "rg" {
   type     = "Microsoft.Resources/resourceGroups@2024-03-01"
   name     = "rg-${random_pet.name.id}"
-  location = "swedencentral"
+  location = "australiaeast"
 }
 
-# In ordinary usage, the role_assignments attribute value would be set to var.role_assignments.
+resource "azapi_resource" "private_dns_zone" {
+  type      = "Microsoft.Network/privateDnsZones@2024-06-01"
+  name      = "privatelink.vaultcore.azure.net"
+  location  = "global"
+  parent_id = azapi_resource.rg.id
+}
+
+resource "azapi_resource" "vnet" {
+  type      = "Microsoft.Network/virtualNetworks@2024-05-01"
+  name      = "vnet-${random_pet.name.id}1"
+  location  = azapi_resource.rg.location
+  parent_id = azapi_resource.rg.id
+  body = {
+    properties = {
+      addressSpace = {
+        addressPrefixes = ["10.0.0.0/16"]
+      }
+      subnets = [
+        {
+          name = "subnet"
+          properties = {
+            addressPrefix = "10.0.0.0/24"
+          }
+        }
+      ]
+    }
+  }
+}
+
+resource "azapi_resource" "keyvault" {
+  type      = "Microsoft.KeyVault/vaults@2023-07-01"
+  name      = replace("kv${random_pet.name.id}2", "-", "")
+  location  = azapi_resource.rg.location
+  parent_id = azapi_resource.rg.id
+  body = {
+    properties = {
+      sku = {
+        family = "A"
+        name   = "standard"
+      }
+      tenantId       = data.azapi_client_config.current.tenant_id
+      accessPolicies = []
+    }
+  }
+}
+
+locals {
+  subnet_resource_id = "${azapi_resource.vnet.output.id}/subnets/subnet"
+}
+
+# In ordinary usage, the private_endpoints attribute value would be set to var.private_endpoints.
 # However, in this example, we are using a data source in the same module to retrieve the object id.
 module "avm_interfaces" {
   source = "../../"
-  role_assignments = {
+  private_endpoints = {
     example = {
-      principal_id               = data.azurerm_client_config.current.object_id
-      role_definition_id_or_name = "Storage Blob Data Owner"
-      scope                      = azapi_resource.rg.id
-      principal_type             = "User"
+      subnet_resource_id            = local.subnet_resource_id
+      private_dns_zone_resource_ids = [azapi_resource.private_dns_zone.id]
+      subresource_name              = "vault"
     }
   }
-  role_assignment_definition_scope = "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+  private_endpoints_scope          = azapi_resource.keyvault.id
+  role_assignment_definition_scope = "/subscriptions/${data.azapi_client_config.current.subscription_id}"
 }
 
-data "azurerm_client_config" "current" {}
+output "private_endpoints_azapi" {
+  value = module.avm_interfaces.private_endpoints_azapi
+}
 
-resource "azapi_resource" "role_assignments" {
-  for_each  = module.avm_interfaces.role_assignments_azapi
+resource "azapi_resource" "private_endpoints" {
+  for_each  = module.avm_interfaces.private_endpoints_azapi
   name      = each.value.name
   type      = each.value.type
   body      = each.value.body
+  location  = azapi_resource.keyvault.location
   parent_id = azapi_resource.rg.id
 }
 ```
@@ -54,10 +109,13 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azapi_resource.keyvault](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.private_dns_zone](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.private_endpoints](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.rg](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.role_assignments](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.vnet](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
 - [random_pet.name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) (resource)
-- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [azapi_client_config.current](https://registry.terraform.io/providers/azure/azapi/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -70,7 +128,11 @@ No optional inputs.
 
 ## Outputs
 
-No outputs.
+The following outputs are exported:
+
+### <a name="output_private_endpoints_azapi"></a> [private\_endpoints\_azapi](#output\_private\_endpoints\_azapi)
+
+Description: n/a
 
 ## Modules
 
