@@ -31,8 +31,12 @@ locals {
           customNetworkInterfaceName = v.network_interface_name != null ? v.network_interface_name : local.custom_nic_computed_name[k]
           ipConfigurations = v.ip_configurations != null ? [
             for ip_configuration in v.ip_configurations : {
-              name             = try(ip_configuration.name, null)
-              privateIPAddress = try(ip_configuration.private_ip_address, null)
+              name = try(ip_configuration.name, null)
+              properties = {
+                privateIPAddress = try(ip_configuration.private_ip_address, null)
+                groupId          = v.subresource_name
+                memberName       = "default"
+              }
             }
           ] : []
           privateLinkServiceConnections = [
