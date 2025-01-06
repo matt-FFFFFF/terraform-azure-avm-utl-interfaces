@@ -31,11 +31,11 @@ locals {
           customNetworkInterfaceName = v.network_interface_name != null ? v.network_interface_name : local.custom_nic_computed_name[k]
           ipConfigurations = v.ip_configurations != null ? [
             for ip_configuration in v.ip_configurations : {
-              name = try(ip_configuration.name, null)
+              name = lookup(ip_configuration, "name", null)
               properties = {
-                privateIPAddress = try(ip_configuration.private_ip_address, null)
+                privateIPAddress = lookup(ip_configuration, "private_ip_address", null)
                 groupId          = v.subresource_name
-                memberName       = "default"
+                memberName       = lookup(ip_configuration, "member_name", "default")
               }
             }
           ] : []
@@ -66,7 +66,7 @@ locals {
         properties = {
           privateDnsZoneConfigs = [
             for private_dns_zone_resource_id in v.private_dns_zone_resource_ids : {
-              name = try(v.private_dns_zone_group_name, "default")
+              name = lookup(v, "private_dns_zone_group_name", "default")
               properties = {
                 privateDnsZoneId = private_dns_zone_resource_id
               }
