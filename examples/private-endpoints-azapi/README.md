@@ -84,6 +84,10 @@ output "private_endpoints_azapi" {
   value = module.avm_interfaces.private_endpoints_azapi
 }
 
+output "private_dns_zone_groups_azapi" {
+  value = module.avm_interfaces.private_dns_zone_groups_azapi
+}
+
 resource "azapi_resource" "private_endpoints" {
   for_each  = module.avm_interfaces.private_endpoints_azapi
   name      = each.value.name
@@ -91,6 +95,14 @@ resource "azapi_resource" "private_endpoints" {
   body      = each.value.body
   location  = azapi_resource.keyvault.location
   parent_id = azapi_resource.rg.id
+}
+
+resource "azapi_resource" "private_dns_zone_groups" {
+  for_each  = module.avm_interfaces.private_dns_zone_groups_azapi
+  name      = each.value.name
+  type      = each.value.type
+  body      = each.value.body
+  parent_id = azapi_resource.private_endpoints[each.key].id
 }
 ```
 
@@ -111,6 +123,7 @@ The following resources are used by this module:
 
 - [azapi_resource.keyvault](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.private_dns_zone](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.private_dns_zone_groups](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.private_endpoints](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.rg](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.vnet](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/resource) (resource)
@@ -129,6 +142,10 @@ No optional inputs.
 ## Outputs
 
 The following outputs are exported:
+
+### <a name="output_private_dns_zone_groups_azapi"></a> [private\_dns\_zone\_groups\_azapi](#output\_private\_dns\_zone\_groups\_azapi)
+
+Description: n/a
 
 ### <a name="output_private_endpoints_azapi"></a> [private\_endpoints\_azapi](#output\_private\_endpoints\_azapi)
 

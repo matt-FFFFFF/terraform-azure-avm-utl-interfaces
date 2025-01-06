@@ -2,8 +2,18 @@ locals {
 
   private_endpoints_type = "Microsoft.Network/privateEndpoints@2024-05-01"
 
+  # these computed names are used if the user does not provide their own for either the private endpoint, nic, or private service connection
   private_endpoint_computed_name = {
-    for k, v in var.private_endpoints : k => "pe-${uuidv5("url", format("%s%s", var.private_endpoints_scope, v.subresource_name != null ? v.subresource_name : ""))}"
+    for k, v in var.private_endpoints : k => "pe-${v.subresource_name}-${uuidv5("url", format("%s", var.private_endpoints_scope))}"
+  }
+
+  # if the private endpoint name is provided (var.private_endpoints.name), we use this as the suffix for the other resources
+  custom_nic_computed_name = {
+    for k, v in var.private_endpoints : k => v.name != null ? "nic-${v.subresource_name}-${v.name}" : "nic-${local.private_endpoint_computed_name[k]}"
+  }
+
+  psc_computed_name = {
+    for k, v in var.private_endpoints : k => v.name != null ? "psc-${v.subresource_name}-${v.name}" : "psc-${local.private_endpoint_computed_name[k]}"
   }
 
   private_endpoints = {
@@ -18,7 +28,7 @@ locals {
               id = application_security_group_resource_id
             }
           ] : []
-          customNetworkInterfaceName = v.network_interface_name != null ? v.network_interface_name : v.name != null ? "nic-${v.name}" : "nic-${local.private_endpoint_computed_name[k]}"
+          customNetworkInterfaceName = v.network_interface_name != null ? v.network_interface_name : local.custom_nic_computed_name[k]
           ipConfigurations = v.ip_configurations != null ? [
             for ip_configuration in v.ip_configurations : {
               name             = try(ip_configuration.name, null)
@@ -27,7 +37,7 @@ locals {
           ] : []
           privateLinkServiceConnections = [
             {
-              name = v.private_service_connection_name != null ? v.private_service_connection_name : v.name != null ? "pse-${v.name}" : "pse-${local.private_endpoint_computed_name[k]}"
+              name = v.private_service_connection_name != null ? v.private_service_connection_name : local.psc_computed_name[k]
               properties = {
                 privateLinkServiceId = var.private_endpoints_scope
                 groupIds             = [v.subresource_name]
