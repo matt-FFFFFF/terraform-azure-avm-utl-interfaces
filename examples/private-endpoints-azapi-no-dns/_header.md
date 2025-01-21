@@ -1,0 +1,1 @@
+# private endpoints interface example
