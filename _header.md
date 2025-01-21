@@ -11,7 +11,7 @@ Pass in the values form your interface variables into this module, then use the 
 # Pass your AVM interface values into this module
 module "avm_interfaces" {
   source  = "azure/avm-utl-interfaces/azure"
-  version = # your version here
+  version = "" # your version here
 
   diagnostic_settings = var.diagnostic_settings
   # ... add more interface values here
@@ -21,9 +21,9 @@ module "avm_interfaces" {
 resource "azapi_resource" "diagnostic_settings" {
   for_each = module.avm_interfaces.diagnostic_settings_azapi
 
-  name    = each.value.name
-  type    = each.value.type
-  body    = each.value.body
+  name      = each.value.name
+  type      = each.value.type
+  body      = each.value.body
   parent_id = azapi_resource.my_module_resource.id
 }
 ```
