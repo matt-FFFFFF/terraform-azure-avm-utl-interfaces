@@ -4,7 +4,7 @@ locals {
 
   # these computed names are used if the user does not provide their own for either the private endpoint, nic, or private service connection
   private_endpoint_computed_name = {
-    for k, v in var.private_endpoints : k => "pe-${v.subresource_name}-${uuidv5("url", format("%s", var.private_endpoints_scope))}"
+    for k, v in var.private_endpoints : k => "pep-${v.subresource_name}-${uuidv5("url", format("%s", var.private_endpoints_scope))}"
   }
 
   # if the private endpoint name is provided (var.private_endpoints.name), we use this as the suffix for the other resources
@@ -13,7 +13,7 @@ locals {
   }
 
   psc_computed_name = {
-    for k, v in var.private_endpoints : k => v.name != null ? "psc-${v.subresource_name}-${v.name}" : "psc-${local.private_endpoint_computed_name[k]}"
+    for k, v in var.private_endpoints : k => v.name != null ? "psc-${v.subresource_name}-${v.name}" : "pcon-${local.private_endpoint_computed_name[k]}"
   }
 
   private_endpoints = {
